@@ -178,7 +178,23 @@ native/
   scripts/dump_js_oracle.py   # optional: refresh JS reference fixtures
 ```
 
-## Tests
+## Batch processing
+
+Transcribe a whole chapter file (verse-numbered Hebrew, e.g. `Genesis_1.txt`):
+
+```bash
+python scripts/batch_transcribe.py \
+  -i ../Genesis_1.txt \
+  -o Genesis_1.ipa.txt
+
+# JSON Lines (one object per verse)
+python scripts/batch_transcribe.py \
+  -i ../Genesis_1.txt \
+  -o Genesis_1.ipa.jsonl \
+  --format jsonl
+```
+
+Text output lines look like ``1\tbaʀ̟eːˈʃiːiθ …``. Use `--allow-unaccented` if a verse lacks teʿamim.
 
 ```bash
 cd native
