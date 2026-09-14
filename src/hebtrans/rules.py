@@ -457,8 +457,10 @@ def syl_rules(syl: Syllable, schema: Schema) -> str:
                 return transliteration(syl, heb, schema)
             new_text = transliteration(syl, heb, schema)
             if new_text != base_syllable_text:
+                # Match JS: copy syllable for downstream cluster mapping, but keep
+                # matching subsequent ADDITIONAL_FEATURES against the *original*
+                # baseSyllableText (so e.g. sheva-after-shureq does not re-match).
                 syl = _copy_syllable(new_text, syl)
-                base_syllable_text = _TAAMIM.sub("", syl.text)
 
     has_mater = any(c.isMater for c in syl.clusters)
     if has_mater:

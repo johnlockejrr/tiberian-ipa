@@ -2,15 +2,19 @@
 
 Native Python matches the `docs/tiberian.ts` / hebrew-transliteration Tiberian schema by default.
 
-Where printed I.5.4 samples differ from that schema (stress on construct `beːen`, half-length vs epenthesis details, etc.), prefer **T1 gold** when adjusting behavior, and record the change here.
+Where printed I.5.4 samples and the schema implementation diverge, prefer **T1 gold** when adjusting behavior, and record the change here.
+
+## Fixed port bugs (was native-only)
+
+- **Double `ˌˌ` + spurious vocal shewa** (e.g. `ˌˌwuˑlaˑχɔl-…`): `syl_rules` updated the feature-match base after Word-initial shureq, so “Syllable with Sheva” re-matched Latinized text and added a second meteg accent. Closed-syllable silent sheva then never reached the strip step. Aligned with JS: keep matching against the original `baseSyllableText`.
 
 ## Currently aligned
 
 | Case | Status |
 |------|--------|
-| Gen 1:1 | Native == JS == I.5.4 `forte_lene` |
-| User verse (Job 38:5-ish sample) | Native == JS schema |
-| שָׁלוֹם / אֱלֹהִים | Native == JS |
+| Gen 1:1–31 | Native == JS Tiberian schema |
+| User verse | Native == JS schema |
+| שָׁלוֹם / אֱלֹהִים | Native == JS (with `allow_unaccented`) |
 
 ## Known JS vs gold micro-diffs (Gen 1.4+)
 

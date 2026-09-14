@@ -29,3 +29,12 @@ def test_user_verse_locked():
     text = "מִֽי־פָקַ֣ד עָלָ֣יו אָ֑רְצָה וּמִ֥י שָׂ֝֗ם תֵּבֵ֥ל כֻּלָּֽהּ׃"
     expected = "ˌmiˑ-ppʰɔːˈq̟aːað ʕɔːˈlɔːɔw ˈʔɔːɔʀ̟sˁɔː wuˈmiː ˈsɔːɔm tʰeːˈveːel kʰulˈlɔːɔh"
     assert transcribe(text).ipa == expected
+
+
+def test_initial_shureq_meteg_silent_sheva():
+    """וּֽלְ… must be ˌwuˑl… not ˌˌwuˑlaˑ… (JS sylRules base-text + silent sheva)."""
+    r = transcribe("וּֽלְכׇל־חַיַּ֣ת הָאָֽרֶץ׃")
+    assert r.ipa is not None
+    assert "ˌˌ" not in r.ipa
+    assert "wuˑla" not in r.ipa
+    assert r.ipa.startswith("ˌwuˑlχɔl")
