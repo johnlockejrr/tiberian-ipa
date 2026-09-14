@@ -1,0 +1,402 @@
+{
+  "user": {
+    "hebrew": "מִֽי־פָקַ֣ד עָלָ֣יו אָ֑רְצָה וּמִ֥י שָׂ֝֗ם תֵּבֵ֥ל כֻּלָּֽהּ׃",
+    "ipa": "ˌmiˑ-ppʰɔːˈq̟aːað ʕɔːˈlɔːɔw ˈʔɔːɔʀ̟sˁɔː wuˈmiː ˈsɔːɔm tʰeːˈveːel kʰulˈlɔːɔh",
+    "syllables": [
+      {
+        "text": "מִֽי־",
+        "syls": [
+          {
+            "text": "מִֽי־",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "מ",
+            "coda": "־"
+          }
+        ]
+      },
+      {
+        "text": "פָקַ֣ד",
+        "syls": [
+          {
+            "text": "פָ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "פ",
+            "coda": ""
+          },
+          {
+            "text": "קַ֣ד",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "ק",
+            "coda": "ד"
+          }
+        ]
+      },
+      {
+        "text": "עָלָ֣יו",
+        "syls": [
+          {
+            "text": "עָ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "ע",
+            "coda": ""
+          },
+          {
+            "text": "לָ֣יו",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "ל",
+            "coda": "יו"
+          }
+        ]
+      },
+      {
+        "text": "אָ֑רְצָה",
+        "syls": [
+          {
+            "text": "אָ֑רְ",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "א",
+            "coda": "רְ"
+          },
+          {
+            "text": "צָה",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "צ",
+            "coda": ""
+          }
+        ]
+      },
+      {
+        "text": "וּמִ֥י",
+        "syls": [
+          {
+            "text": "וּ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "",
+            "coda": ""
+          },
+          {
+            "text": "מִ֥י",
+            "isClosed": false,
+            "isAccented": true,
+            "onset": "מ",
+            "coda": ""
+          }
+        ]
+      },
+      {
+        "text": "שָׂ֝֗ם",
+        "syls": [
+          {
+            "text": "שָׂ֝֗ם",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "שׂ",
+            "coda": "ם"
+          }
+        ]
+      },
+      {
+        "text": "תֵּבֵ֥ל",
+        "syls": [
+          {
+            "text": "תֵּ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "תּ",
+            "coda": ""
+          },
+          {
+            "text": "בֵ֥ל",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "ב",
+            "coda": "ל"
+          }
+        ]
+      },
+      {
+        "text": "כֻּלָּֽהּ׃",
+        "syls": [
+          {
+            "text": "כֻּ",
+            "isClosed": true,
+            "isAccented": false,
+            "onset": "כּ",
+            "coda": ""
+          },
+          {
+            "text": "לָּֽהּ׃",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "לּ",
+            "coda": "הּ׃"
+          }
+        ]
+      }
+    ]
+  },
+  "shalom": {
+    "hebrew": "שָׁלוֹם",
+    "ipa": "ʃɔːˈloːom",
+    "syllables": [
+      {
+        "text": "שָׁלֹום",
+        "syls": [
+          {
+            "text": "שָׁ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "שׁ",
+            "coda": ""
+          },
+          {
+            "text": "לֹום",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "ל",
+            "coda": "ם"
+          }
+        ]
+      }
+    ]
+  },
+  "elohim": {
+    "hebrew": "אֱלֹהִים",
+    "ipa": "ʔɛloːˈhiːim",
+    "syllables": [
+      {
+        "text": "אֱלֹהִים",
+        "syls": [
+          {
+            "text": "אֱ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "א",
+            "coda": ""
+          },
+          {
+            "text": "לֹ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "ל",
+            "coda": ""
+          },
+          {
+            "text": "הִים",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "ה",
+            "coda": "ם"
+          }
+        ]
+      }
+    ]
+  },
+  "bereshit": {
+    "hebrew": "בְּרֵאשִׁ֖ית",
+    "ipa": "baʀ̟eːˈʃiːiθ",
+    "syllables": [
+      {
+        "text": "בְּרֵאשִׁ֖ית",
+        "syls": [
+          {
+            "text": "בְּ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "בּ",
+            "coda": ""
+          },
+          {
+            "text": "רֵא",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "ר",
+            "coda": "א"
+          },
+          {
+            "text": "שִׁ֖ית",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "שׁ",
+            "coda": "ת"
+          }
+        ]
+      }
+    ]
+  },
+  "gen1": {
+    "hebrew": "בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃",
+    "ipa": "baʀ̟eːˈʃiːiθ bɔːˈʀ̟ɔː ʔɛloːˈhiːim ˈʔeːeθ haʃʃɔːˈmaːjim veˈʔeːeθ hɔːˈʔɔːʀ̟ɛsˁ",
+    "syllables": [
+      {
+        "text": "בְּרֵאשִׁ֖ית",
+        "syls": [
+          {
+            "text": "בְּ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "בּ",
+            "coda": ""
+          },
+          {
+            "text": "רֵא",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "ר",
+            "coda": "א"
+          },
+          {
+            "text": "שִׁ֖ית",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "שׁ",
+            "coda": "ת"
+          }
+        ]
+      },
+      {
+        "text": "בָּרָ֣א",
+        "syls": [
+          {
+            "text": "בָּ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "בּ",
+            "coda": ""
+          },
+          {
+            "text": "רָ֣א",
+            "isClosed": false,
+            "isAccented": true,
+            "onset": "ר",
+            "coda": "א"
+          }
+        ]
+      },
+      {
+        "text": "אֱלֹהִ֑ים",
+        "syls": [
+          {
+            "text": "אֱ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "א",
+            "coda": ""
+          },
+          {
+            "text": "לֹ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "ל",
+            "coda": ""
+          },
+          {
+            "text": "הִ֑ים",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "ה",
+            "coda": "ם"
+          }
+        ]
+      },
+      {
+        "text": "אֵ֥ת",
+        "syls": [
+          {
+            "text": "אֵ֥ת",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "א",
+            "coda": "ת"
+          }
+        ]
+      },
+      {
+        "text": "הַשָּׁמַ֖יִם",
+        "syls": [
+          {
+            "text": "הַ",
+            "isClosed": true,
+            "isAccented": false,
+            "onset": "ה",
+            "coda": ""
+          },
+          {
+            "text": "שָּׁ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "שּׁ",
+            "coda": ""
+          },
+          {
+            "text": "מַ֖",
+            "isClosed": false,
+            "isAccented": true,
+            "onset": "מ",
+            "coda": ""
+          },
+          {
+            "text": "יִם",
+            "isClosed": true,
+            "isAccented": false,
+            "onset": "י",
+            "coda": "ם"
+          }
+        ]
+      },
+      {
+        "text": "וְאֵ֥ת",
+        "syls": [
+          {
+            "text": "וְ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "ו",
+            "coda": ""
+          },
+          {
+            "text": "אֵ֥ת",
+            "isClosed": true,
+            "isAccented": true,
+            "onset": "א",
+            "coda": "ת"
+          }
+        ]
+      },
+      {
+        "text": "הָאָֽרֶץ׃",
+        "syls": [
+          {
+            "text": "הָ",
+            "isClosed": false,
+            "isAccented": false,
+            "onset": "ה",
+            "coda": ""
+          },
+          {
+            "text": "אָֽ",
+            "isClosed": false,
+            "isAccented": true,
+            "onset": "א",
+            "coda": ""
+          },
+          {
+            "text": "רֶץ׃",
+            "isClosed": true,
+            "isAccented": false,
+            "onset": "ר",
+            "coda": "ץ׃"
+          }
+        ]
+      }
+    ]
+  }
+}
