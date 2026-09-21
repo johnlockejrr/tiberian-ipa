@@ -206,7 +206,7 @@ python scripts/batch_transcribe.py -i BHS5.csv -o BHS5.ipa.csv
 # smoke: --limit 50
 ```
 
-Before IPA it strips HTML notes and **Petucha / Setuma** markers (`׃ פ` / `׃ ס` / `{פ}` / `{ס}`) so section letters are not transcribed (bare `פ` would otherwise become `ˈf`).
+Before IPA it strips HTML notes and **Petucha / Setuma** markers (`׃ פ` / `׃ ס` / `{פ}` / `{ס}`) so section letters are not transcribed (bare `פ` would otherwise become `ˈf`). It also applies a small table of known WLC/BHS pointing repairs (1Sam 2:35, 2Kgs 21:26, Song 5:11) that otherwise crash syllabification.
 
 **Qere / Ketiv:** IPA should follow the **Qere** (what is read). The schema already applies perpetual Qere (e.g. יהוה → Adonai/Elohim, הִוא → הִיא). Plain BHS lines are usually hybrid (Ketiv consonants + Qere vowels); without a separate Qere column, full consonant restoration for every ketiv/qere pair is not available.
 

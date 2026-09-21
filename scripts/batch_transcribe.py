@@ -25,6 +25,7 @@ Preprocessing (always):
 - Strip HTML (e.g. ``<i>[32:1]</i>`` English versification notes)
 - Strip Petucha / Setuma markers (``׃ פ`` / ``׃ ס`` / ``{פ}`` / ``{ס}``) so they
   are **not** turned into IPA (bare ``פ`` otherwise becomes ``ˈf``)
+- Apply known WLC/BHS pointing repairs (see ``BHS_POINTING_FIXES``)
 
 Qere / Ketiv:
 
@@ -69,6 +70,17 @@ _HTML_TAG = re.compile(r"<[^>]+>")
 _PETUCHA_SETUMA = re.compile(r"(?:׃|\.)\s*[פס]\s*$")
 _PETUCHA_SETUMA_SPACE = re.compile(r"\s+[פס]\s*$")
 
+# Known defective WLC/BHS5 pointing that breaks syllabification (JS fails the same).
+# Apply as literal substring replacements before IPA.
+BHS_POINTING_FIXES: tuple[tuple[str, str], ...] = (
+    # 1Sam 2:35 — missing ḥiriq on he of hithpael
+    ("וְהתְהַלֵּ֥ךְ", "וְהִתְהַלֵּ֥ךְ"),
+    # 2Kgs 21:26 — sheva + holem on bet; should be holem only
+    ("וַיִּקְבְֹּ֥ר", "וַיִּקְבֹּ֥ר"),
+    # Song 5:11 — sheva before shureq; should be qubuts on vav
+    ("קְוּצֹּותָיו֙", "קְוֻצֹּותָיו֙"),
+)
+
 
 def clean_hebrew(text: str) -> str:
     """Normalize verse text for IPA (strip markup / section letters, keep teʿamim)."""
@@ -77,6 +89,9 @@ def clean_hebrew(text: str) -> str:
     text = _SECTION_BRACE.sub("", text)
     text = _PETUCHA_SETUMA.sub("׃", text)
     text = _PETUCHA_SETUMA_SPACE.sub("", text)
+    for bad, good in BHS_POINTING_FIXES:
+        if bad in text:
+            text = text.replace(bad, good)
     return text.strip()
 
 
