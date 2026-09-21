@@ -13,3 +13,5 @@ build/
 src/*.egg-info/
 *.ipa.txt
 *.ipa.jsonl
+*.ipa.csv
+BHS5.csv

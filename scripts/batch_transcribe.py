@@ -1,15 +1,44 @@
 #!/usr/bin/env python3
-"""Batch-transcribe a pointed Hebrew text file to Tiberian IPA.
+"""Batch-transcribe pointed Hebrew to Tiberian IPA.
 
-Designed for chapter files like Genesis_1.txt where verses look like::
+Supports:
 
-    1 בְּרֵאשִׁ֖ית …׃ 2 וְהָאָ֗רֶץ …׃
-    6 וַיֹּ֣אמֶר …׃ {פ}
+1. Chapter blobs (e.g. ``Genesis_1.txt``)::
+
+       1 בְּרֵאשִׁ֖ית …׃ 2 וְהָאָ֗רֶץ …׃
+
+   Output (txt)::
+
+       1\\t<ipa>
+       2\\t<ipa>
+
+2. Pipe-CSV like ``BHS5.csv``::
+
+       book_number|chapter|verse|text
+
+   Output (same CSV shape, IPA in the text column)::
+
+       book_number|chapter|verse|ipa
+
+Preprocessing (always):
+
+- Strip HTML (e.g. ``<i>[32:1]</i>`` English versification notes)
+- Strip Petucha / Setuma markers (``׃ פ`` / ``׃ ס`` / ``{פ}`` / ``{ס}``) so they
+  are **not** turned into IPA (bare ``פ`` otherwise becomes ``ˈf``)
+
+Qere / Ketiv:
+
+- IPA follows what is **read** (Qere), not the bare consonantal Ketiv.
+- This engine applies perpetual Qere already in the Tiberian schema
+  (e.g. יהוה → Adonai/Elohim, הִוא → הִיא).
+- Plain BHS/WLC-style lines are usually the hybrid (Ketiv consonants + Qere
+  vowels). Without a separate Qere apparatus, full Qere-consonant restoration
+  is not available for every ketiv/qere pair.
 
 Usage::
 
-    python scripts/batch_transcribe.py -i ../Genesis_1.txt -o Genesis_1.ipa.txt
-    python scripts/batch_transcribe.py -i ../Genesis_1.txt -o out.jsonl --format jsonl
+    python scripts/batch_transcribe.py -i BHS5.csv -o BHS5.ipa.csv
+    python scripts/batch_transcribe.py -i Genesis_1.txt -o Genesis_1.ipa.txt
 """
 
 from __future__ import annotations
@@ -22,12 +51,33 @@ from pathlib import Path
 
 from tiberian_ipa import transcribe
 
-# ASCII verse number at line start or after whitespace (SBL / Mechon Mamre style).
+try:
+    from tqdm import tqdm
+except ImportError:  # pragma: no cover
+    tqdm = None  # type: ignore[assignment]
+
+# --- chapter-blob parsing ---------------------------------------------------
+
 _VERSE_START = re.compile(r"(?:(?<=^)|(?<=\s))(\d+)\s+", re.UNICODE)
-# Paragraph / closed-section markers often left in WLC exports.
-_SECTION_MARK = re.compile(r"\s*\{[פס]\}")
-# Soft hyphen / BOM leftovers
+_SECTION_BRACE = re.compile(r"\s*\{[פס]\}")
 _JUNK = re.compile(r"[\ufeff\u00ad]")
+
+# --- shared cleanup ---------------------------------------------------------
+
+_HTML_TAG = re.compile(r"<[^>]+>")
+# Petucha / Setuma after sof pasuq (BHS/WLC paragraph markers — not speech).
+_PETUCHA_SETUMA = re.compile(r"(?:׃|\.)\s*[פס]\s*$")
+_PETUCHA_SETUMA_SPACE = re.compile(r"\s+[פס]\s*$")
+
+
+def clean_hebrew(text: str) -> str:
+    """Normalize verse text for IPA (strip markup / section letters, keep teʿamim)."""
+    text = _JUNK.sub("", text)
+    text = _HTML_TAG.sub("", text)
+    text = _SECTION_BRACE.sub("", text)
+    text = _PETUCHA_SETUMA.sub("׃", text)
+    text = _PETUCHA_SETUMA_SPACE.sub("", text)
+    return text.strip()
 
 
 def parse_verses(text: str) -> list[tuple[str, str]]:
@@ -39,8 +89,7 @@ def parse_verses(text: str) -> list[tuple[str, str]]:
 
     matches = list(_VERSE_START.finditer(text))
     if not matches:
-        # Single blob without verse numbers
-        cleaned = _SECTION_MARK.sub("", text).strip()
+        cleaned = clean_hebrew(text)
         return [("?", cleaned)] if cleaned else []
 
     verses: list[tuple[str, str]] = []
@@ -48,41 +97,57 @@ def parse_verses(text: str) -> list[tuple[str, str]]:
         num = m.group(1)
         start = m.end()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        heb = _SECTION_MARK.sub("", text[start:end]).strip()
+        heb = clean_hebrew(text[start:end])
         if heb:
             verses.append((num, heb))
     return verses
 
 
-def format_line(num: str, ipa: str | None, *, hebrew: str, mode: str) -> str:
+def parse_bhs_csv(text: str) -> list[tuple[str, str, str, str]]:
+    """Return ``[(book, chapter, verse, hebrew), ...]`` from pipe-CSV."""
+    rows: list[tuple[str, str, str, str]] = []
+    for i, line in enumerate(text.replace("\r\n", "\n").replace("\r", "\n").splitlines()):
+        line = line.strip()
+        if not line:
+            continue
+        if i == 0 and line.lower().startswith("book_number"):
+            continue
+        parts = line.split("|", 3)
+        if len(parts) < 4:
+            print(f"# skip malformed line {i + 1}: {line[:60]!r}", file=sys.stderr)
+            continue
+        book, chapter, verse, heb = parts
+        heb = clean_hebrew(heb)
+        if heb:
+            rows.append((book, chapter, verse, heb))
+    return rows
+
+
+def format_line(num: str, ipa: str | None, *, mode: str) -> str:
     if ipa is None:
         return f"{num}\t# FAILED ({mode})"
     return f"{num}\t{ipa}"
 
 
+def _progress(iterable, *, total: int, desc: str, disable: bool):
+    if disable or tqdm is None:
+        if not disable and tqdm is None:
+            print("# tip: pip install tqdm  for a progress bar", file=sys.stderr)
+        return iterable
+    return tqdm(iterable, total=total, desc=desc, unit="verse", file=sys.stderr)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Batch Tiberian IPA transcription (input file → output file).",
+        description="Batch Tiberian IPA transcription (chapter text or BHS5-style CSV).",
     )
-    parser.add_argument(
-        "-i",
-        "--input",
-        type=Path,
-        required=True,
-        help="Input UTF-8 text (verse-numbered Hebrew chapter)",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=Path,
-        required=True,
-        help="Output path (.txt or .jsonl)",
-    )
+    parser.add_argument("-i", "--input", type=Path, required=True, help="Input UTF-8 file")
+    parser.add_argument("-o", "--output", type=Path, required=True, help="Output path")
     parser.add_argument(
         "--format",
-        choices=("txt", "jsonl"),
-        default=None,
-        help="Output format (default: jsonl if --output ends with .jsonl, else txt)",
+        choices=("auto", "txt", "jsonl", "csv"),
+        default="auto",
+        help="Output format (auto: .csv→csv, .jsonl→jsonl, else txt; CSV in→csv)",
     )
     parser.add_argument(
         "--allow-unaccented",
@@ -95,27 +160,66 @@ def main(argv: list[str] | None = None) -> int:
         default="forte_lene",
         help="Pronunciation stream (default: forte_lene)",
     )
+    parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable progress bar",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="Process only the first N verses (0 = all; useful for smoke tests)",
+    )
     args = parser.parse_args(argv)
 
     if not args.input.is_file():
         print(f"input not found: {args.input}", file=sys.stderr)
         return 1
 
-    fmt = args.format
-    if fmt is None:
-        fmt = "jsonl" if args.output.suffix.lower() == ".jsonl" else "txt"
-
     raw = args.input.read_text(encoding="utf-8")
-    verses = parse_verses(raw)
-    if not verses:
+    is_csv_in = (
+        args.input.suffix.lower() == ".csv"
+        or raw.lstrip().lower().startswith("book_number|")
+    )
+
+    fmt = args.format
+    if fmt == "auto":
+        if args.output.suffix.lower() == ".jsonl":
+            fmt = "jsonl"
+        elif is_csv_in or args.output.suffix.lower() == ".csv":
+            fmt = "csv"
+        else:
+            fmt = "txt"
+
+    if is_csv_in:
+        records = parse_bhs_csv(raw)
+        # normalize to (label, hebrew, meta)
+        items = [
+            (f"{b}:{c}:{v}", heb, {"book": b, "chapter": c, "verse": v, "hebrew": heb})
+            for b, c, v, heb in records
+        ]
+    else:
+        verses = parse_verses(raw)
+        items = [(num, heb, {"verse": num, "hebrew": heb}) for num, heb in verses]
+
+    if args.limit and args.limit > 0:
+        items = items[: args.limit]
+
+    if not items:
         print("no verses found in input", file=sys.stderr)
         return 1
 
     lines_out: list[str] = []
+    if fmt == "csv":
+        lines_out.append("book_number|chapter|verse|text")
+
     n_ok = 0
     n_fail = 0
 
-    for num, heb in verses:
+    for label, heb, meta in _progress(
+        items, total=len(items), desc="tiberian-ipa", disable=args.no_progress
+    ):
         result = transcribe(
             heb,
             profile=args.profile,
@@ -124,40 +228,41 @@ def main(argv: list[str] | None = None) -> int:
         if result.ipa is None:
             n_fail += 1
             for w in result.warnings:
-                print(f"# {num}: warning: {w}", file=sys.stderr)
+                print(f"# {label}: warning: {w}", file=sys.stderr)
             for u in result.unresolved:
                 print(
-                    f"# {num}: {u.get('reason')}: {u.get('message') or ''}",
+                    f"# {label}: {u.get('reason')}: {u.get('message') or ''}",
                     file=sys.stderr,
                 )
         else:
             n_ok += 1
             for w in result.warnings:
-                print(f"# {num}: warning: {w}", file=sys.stderr)
+                print(f"# {label}: warning: {w}", file=sys.stderr)
 
         if fmt == "jsonl":
-            lines_out.append(
-                json.dumps(
-                    {
-                        "verse": num,
-                        "hebrew": heb,
-                        "ipa": result.ipa,
-                        "mode": result.mode,
-                        "warnings": result.warnings,
-                        "unresolved": result.unresolved,
-                    },
-                    ensure_ascii=False,
-                )
-            )
+            payload = {
+                **meta,
+                "ipa": result.ipa,
+                "mode": result.mode,
+                "warnings": result.warnings,
+                "unresolved": result.unresolved,
+            }
+            lines_out.append(json.dumps(payload, ensure_ascii=False))
+        elif fmt == "csv":
+            book = meta.get("book", "?")
+            chapter = meta.get("chapter", "?")
+            verse = meta.get("verse", meta.get("verse", "?"))
+            cell = result.ipa if result.ipa is not None else f"# FAILED ({result.mode})"
+            # Keep pipe-CSV; IPA has no pipes
+            lines_out.append(f"{book}|{chapter}|{verse}|{cell}")
         else:
-            lines_out.append(
-                format_line(num, result.ipa, hebrew=heb, mode=result.mode)
-            )
+            num = str(meta.get("verse", label))
+            lines_out.append(format_line(num, result.ipa, mode=result.mode))
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text("\n".join(lines_out) + "\n", encoding="utf-8")
     print(
-        f"wrote {args.output} ({n_ok} ok, {n_fail} failed, {len(verses)} verses)",
+        f"wrote {args.output} ({n_ok} ok, {n_fail} failed, {len(items)} verses)",
         file=sys.stderr,
     )
     return 0 if n_fail == 0 else 2

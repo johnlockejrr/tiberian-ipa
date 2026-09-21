@@ -196,6 +196,20 @@ python scripts/batch_transcribe.py \
 
 Text output lines look like ``1\tbaʀ̟eːˈʃiːiθ …``. Use `--allow-unaccented` if a verse lacks teʿamim.
 
+### BHS5-style pipe CSV
+
+Same script accepts `book_number|chapter|verse|text` and writes the same shape with IPA in the text column (progress bar via `tqdm`):
+
+```bash
+pip install -e ".[batch]"   # tqdm
+python scripts/batch_transcribe.py -i BHS5.csv -o BHS5.ipa.csv
+# smoke: --limit 50
+```
+
+Before IPA it strips HTML notes and **Petucha / Setuma** markers (`׃ פ` / `׃ ס` / `{פ}` / `{ס}`) so section letters are not transcribed (bare `פ` would otherwise become `ˈf`).
+
+**Qere / Ketiv:** IPA should follow the **Qere** (what is read). The schema already applies perpetual Qere (e.g. יהוה → Adonai/Elohim, הִוא → הִיא). Plain BHS lines are usually hybrid (Ketiv consonants + Qere vowels); without a separate Qere column, full consonant restoration for every ketiv/qere pair is not available.
+
 ```bash
 cd native
 source .venv/bin/activate
