@@ -26,3 +26,22 @@ def test_parse_genesis_style():
     assert [n for n, _ in verses] == ["1", "2", "3"]
     assert "בְּרֵאשִׁ֖ית" in verses[0][1]
     assert "{פ}" not in verses[1][1]
+
+
+def test_clean_hebrew_strips_html_keeps_qere_text():
+    clean = _load().clean_hebrew
+    # Multi-word qere marked with <i>; Hebrew inside must survive.
+    raw = "<i>מַה</i>־<i>זֶּ֣ה</i> בְיָדֶ֔ךָ"
+    out = clean(raw)
+    assert "<" not in out and ">" not in out
+    assert "מַה" in out and "זֶּ֣ה" in out
+
+
+def test_clean_hebrew_strips_verse_notes_and_puncta():
+    clean = _load().clean_hebrew
+    raw = "<i>[8:1]</i> וַיֹּ֤אמֶר יְהוָה֙ וַׄיִּׄשָּׁׄקֵ֑ׄהׄוּׄ"
+    out = clean(raw)
+    assert "[8:1]" not in out
+    assert "8:1" not in out
+    assert "\u05c4" not in out
+    assert "וַיֹּ֤אמֶר" in out

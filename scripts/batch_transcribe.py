@@ -22,7 +22,9 @@ Supports:
 
 Preprocessing (always):
 
-- Strip HTML (e.g. ``<i>[32:1]</i>`` English versification notes)
+- Strip HTML (e.g. ``<i>…</i>`` qere spans — Hebrew inside is kept)
+- Strip English versification notes (``[32:1]`` / ``<i>[32:1]</i>``)
+- Strip puncta extraordinaria (U+05C4) so scribal dots do not enter IPA
 - Strip Petucha / Setuma markers (``׃ פ`` / ``׃ ס`` / ``{פ}`` / ``{ס}``) so they
   are **not** turned into IPA (bare ``פ`` otherwise becomes ``ˈf``)
 - Apply known WLC/BHS pointing repairs (see ``BHS_POINTING_FIXES``)
@@ -61,14 +63,20 @@ except ImportError:  # pragma: no cover
 
 _VERSE_START = re.compile(r"(?:(?<=^)|(?<=\s))(\d+)\s+", re.UNICODE)
 _SECTION_BRACE = re.compile(r"\s*\{[פס]\}")
-_JUNK = re.compile(r"[\ufeff\u00ad]")
 
 # --- shared cleanup ---------------------------------------------------------
 
-_HTML_TAG = re.compile(r"<[^>]+>")
+_HTML_TAG = re.compile(r"<[^>]+>", re.IGNORECASE)
+# English versification notes in BHS5, e.g. <i>[8:1]</i> → [8:1] after tag strip.
+_VERSE_NOTE = re.compile(r"\[\s*\d+\s*:\s*\d+\s*\]")
 # Petucha / Setuma after sof pasuq (BHS/WLC paragraph markers — not speech).
 _PETUCHA_SETUMA = re.compile(r"(?:׃|\.)\s*[פס]\s*$")
 _PETUCHA_SETUMA_SPACE = re.compile(r"\s+[פס]\s*$")
+# Puncta extraordinaria (U+05C4) — scribal dots, not Tiberian phonology.
+_PUNCTA_EXTRAORDINARIA = "\u05c4"
+# Soft hyphen / BOM / combining dot-below (rare WLC junk).
+_JUNK = re.compile(r"[\ufeff\u00ad\u0323]")
+_WS = re.compile(r"\s+")
 
 # Known defective WLC/BHS5 pointing that breaks syllabification (JS fails the same).
 # Apply as literal substring replacements before IPA.
@@ -83,17 +91,26 @@ BHS_POINTING_FIXES: tuple[tuple[str, str], ...] = (
 
 
 def clean_hebrew(text: str) -> str:
-    """Normalize verse text for IPA (strip markup / section letters, keep teʿamim)."""
+    """Normalize verse text for IPA (strip markup / notes / puncta; keep teʿamim).
+
+    Removes:
+    - HTML (incl. ``<i>`` qere spans — inner Hebrew is kept)
+    - English versification notes ``[chapter:verse]``
+    - Puncta extraordinaria (U+05C4)
+    - Petucha / Setuma markers
+    - BOM / soft hyphen / combining dot-below
+    """
     text = _JUNK.sub("", text)
     text = _HTML_TAG.sub("", text)
+    text = _VERSE_NOTE.sub("", text)
+    text = text.replace(_PUNCTA_EXTRAORDINARIA, "")
     text = _SECTION_BRACE.sub("", text)
     text = _PETUCHA_SETUMA.sub("׃", text)
     text = _PETUCHA_SETUMA_SPACE.sub("", text)
     for bad, good in BHS_POINTING_FIXES:
         if bad in text:
             text = text.replace(bad, good)
-    return text.strip()
-
+    return _WS.sub(" ", text).strip()
 
 def parse_verses(text: str) -> list[tuple[str, str]]:
     """Return ``[(verse_number, hebrew), ...]`` from a chapter blob."""
