@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from hebtrans.dehiq import word_is_dehiq_host
 from hebtrans.schema import Schema
 
 # ---------------------------------------------------------------------------
@@ -66,13 +67,18 @@ def _digraph_dagesh_chazaq(
     prev_word = None
     if cluster.syllable and cluster.syllable.word and cluster.syllable.word.prev:
         prev_word = cluster.syllable.word.prev.value
-    if (
-        prev_word is not None
-        and getattr(prev_word, "isInConstruct", False)
-        and prev_word.syllables
-        and not prev_word.syllables[-1].isClosed
-    ):
-        return _sub(cluster.text, heb, f"{no_second}{digraph}")
+    word = cluster.syllable.word if cluster.syllable else None
+    # Maqqef construct OR deḥiq sandhi → geminate as C + Cʰ (e.g. ppʰ), not CʰCʰ.
+    if prev_word is not None and word is not None:
+        from hebtrans.dehiq import is_dehiq_pair
+
+        construct_open = (
+            getattr(prev_word, "isInConstruct", False)
+            and prev_word.syllables
+            and not prev_word.syllables[-1].isClosed
+        )
+        if construct_open or is_dehiq_pair(prev_word, word):
+            return _sub(cluster.text, heb, f"{no_second}{digraph}")
 
     if not cluster.prev or (
         cluster.prev.value is not None and getattr(cluster.prev.value, "isNotHebrew", False)
@@ -277,6 +283,22 @@ def _full_vowel_syllable(syllable: Any, _: Any, schema: Schema) -> str:
         realized = determine_patach_realization(vowel)
         return no_mater_text.replace(
             vowel, f"{realized}{length_marker}{sep}{realized}", 1
+        )
+
+    # Deḥiq: compress final unstressed long qameṣ/segol to half-long (§I.2.8.1.2).
+    word = getattr(syllable, "word", None)
+    if (
+        syllable.isFinal
+        and not is_accented
+        and not is_closed
+        and vowel_name in ("QAMATS", "SEGOL")
+        and word is not None
+        and word_is_dehiq_host(word)
+    ):
+        return no_mater_text.replace(
+            vowel,
+            f"{determine_patach_realization(vowel)}{half_length_marker}",
+            1,
         )
 
     if is_accented or (not is_accented and not is_closed):

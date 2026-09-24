@@ -328,6 +328,40 @@ def _set_is_closed(syllable: Syllable, index: int, arr: List[Syllable]) -> None:
         syllable.isClosed = (has_short_vowel or has_no_vowel) and prev_dagesh
 
 
+# Furtive pataḥ host: final open syllable whose plain text ends in ḥ/ʿ/h̄ + pataḥ.
+# Cantillation / meteg / sof pasuq are stripped before matching (postpositive
+# Segolta etc. sit on this letter in WLC without implying stress here).
+_TAAMIM_METEG_SOF = re.compile(r"[\u0591-\u05AF\u05BD\u05C3]")
+_FURTIVE_END = re.compile(r"(?:\u05D7|\u05E2|\u05D4\u05BC)\u05B7$")
+
+
+def _plain_hebrew_for_furtive(text: str) -> str:
+    return _TAAMIM_METEG_SOF.sub("", text)
+
+
+def _is_furtive_syllable(syllable: Syllable) -> bool:
+    """True if this syllable is the epenthetic furtive-pataḥ host (never stressed)."""
+    if not syllable.isFinal or syllable.isClosed:
+        return False
+    return bool(_FURTIVE_END.search(_plain_hebrew_for_furtive(syllable.text)))
+
+
+def _shift_accent_off_furtive(syllables: List[Syllable]) -> None:
+    """Move primary stress off a furtive-pataḥ syllable onto the preceding one.
+
+    Postpositive accents (lone Segolta, etc.) and the milraʿ fallback both land
+    on the final letter; for רָקִיעַ / רוּחַ that letter hosts only furtive pataḥ,
+    which is never stress-bearing (cf. same lemmas with zaqef/atnaḥ on קִ / וּ).
+    """
+    for i, syl in enumerate(syllables):
+        if not syl.isAccented or not _is_furtive_syllable(syl):
+            continue
+        syl.isAccented = False
+        if i > 0:
+            syllables[i - 1].isAccented = True
+        return
+
+
 def _set_is_accented(syllable: Syllable) -> None:
     if syllable.isAccented:
         return
@@ -493,6 +527,9 @@ def syllabify(
 
     if not any(s.isAccented for s in syllables) and not is_word_in_construct:
         syllables[-1].isAccented = True
+
+    # After taʿam rules + milraʿ fallback: furtive pataḥ never bears stress.
+    _shift_accent_off_furtive(syllables)
 
     for s in syllables:
         for c in s.clusters:

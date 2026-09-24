@@ -7,6 +7,7 @@ from typing import Any, Callable
 
 from havarot import Cluster, Syllable, Word
 
+from hebtrans.dehiq import is_dehiq_pair
 from hebtrans.schema import Schema
 
 # Taamim stripped before most rule matching (same range as rules.js)
@@ -147,6 +148,10 @@ def add_stress_marker(text: str, syl: Syllable, schema: Schema) -> str:
     if location == "before-syllable":
         is_doubled = any(is_dagesh_chazaq(c, schema) for c in syl.clusters)
         if is_doubled:
+            # Word-medial geminates: stress after the coda half (hamˈmaː…).
+            # Word-initial deḥiq geminates: stress before the whole onset (ˈbbɔː…).
+            if syl.prev is None:
+                return f"{mark}{text}"
             first_cluster = syl.clusters[0]
             name = first_cluster.chars[0].characterName if first_cluster.chars else None
             output = schema[name] if name and name in schema else ""
@@ -302,6 +307,9 @@ def is_dagesh_chazaq(cluster: Cluster, schema: Schema) -> bool:
         syllables = prev_word.syllables
         if syllables and not syllables[-1].isClosed:
             return True
+    # Deḥiq / ʾathe me-raḥiq: geminate the onset of the second word (§I.2.8.1.2).
+    if prev_word is not None and word is not None and is_dehiq_pair(prev_word, word):
+        return True
     prev_syllable_node = syl.prev if syl else None
     if not prev_syllable_node:
         return False
